@@ -1,4 +1,4 @@
-package experimentalData;
+package myHPCProject;
 
 import choco.cp.model.managers.IntConstraintManager;
 import choco.cp.solver.CPSolver;
@@ -27,8 +27,8 @@ public class FastBinPackingManager extends IntConstraintManager {
             IntDomainVar [] loads = solver.getVar(Arrays.copyOfRange(vars, 0, nbBins));
             IntDomainVar [] sizes = solver.getVar(Arrays.copyOfRange(vars, nbBins, nbBins + nbItems));
             IntDomainVar [] bins = solver.getVar(Arrays.copyOfRange(vars, nbBins + nbItems, nbBins + nbItems + nbItems));
-            return new FastBinPacking(solver.getEnvironment(), loads, bins, sizes, FastBinPacking.BigItemsPolicy.IGNORE);
+            return new FastBinPacking(solver.getEnvironment(), loads, sizes, bins);
         }
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 }
