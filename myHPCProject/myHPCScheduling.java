@@ -309,6 +309,7 @@ public class myHPCScheduling extends PatternExample {
 }
 
 	public static void main(String[] args) {
+        ChocoLogging.setVerbosity(Verbosity.SEARCH);
 		new myHPCScheduling().execute();
 	}
 }
