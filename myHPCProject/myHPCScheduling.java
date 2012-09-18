@@ -7,55 +7,32 @@ import choco.Choco;
 import choco.Options;
 import choco.cp.model.CPModel;
 import choco.cp.solver.CPSolver;
-import choco.cp.solver.constraints.global.geost.Constants;
-import choco.cp.solver.search.BranchingFactory;
 import choco.cp.solver.search.integer.branching.*;
-import choco.cp.solver.search.integer.valiterator.*;
 import choco.cp.solver.search.integer.varselector.*;
-import choco.cp.solver.search.integer.valselector.*;
+import choco.kernel.common.util.tools.ArrayUtils;
+import choco.kernel.model.constraints.pack.PackModel;
 import choco.kernel.solver.search.ValSelector;
-import choco.cp.solver.search.integer.branching.domwdeg.DomOverWDegBinBranchingNew;
-import choco.cp.solver.search.integer.branching.ImpactBasedBranching;
-import choco.kernel.model.constraints.geost.externalConstraints.IExternalConstraint;
-import choco.kernel.model.constraints.geost.externalConstraints.NonOverlappingModel;
-import choco.kernel.model.variables.geost.GeostObject;
-import choco.kernel.model.variables.geost.ShiftedBox;
 import choco.kernel.model.variables.integer.IntegerVariable;
 import choco.kernel.model.variables.integer.IntegerConstantVariable;
 import choco.kernel.model.variables.set.SetVariable;
 import choco.kernel.model.variables.set.SetConstantVariable;
 import samples.tutorials.PatternExample;
-import choco.kernel.solver.Solver;
-import choco.kernel.solver.branch.VarSelector;
 import choco.kernel.solver.variables.integer.IntDomainVar;
 import choco.kernel.common.logging.ChocoLogging;
 import choco.kernel.common.logging.Verbosity;
 import choco.cp.solver.constraints.global.pack.*;
 import choco.kernel.model.constraints.*;
-import choco.cp.solver.constraints.*;
 
-import choco.cp.solver.search.integer.branching.domwdeg.DomOverWDegBranchingNew;
 import choco.cp.solver.search.integer.valselector.BestFit;
 
 import java.util.ArrayList;
-import java.util.Random;
 
-import choco.Choco;
-import choco.cp.model.*;
-import choco.kernel.common.util.iterators.DisposableIterator;
-import choco.kernel.model.*;
 import choco.kernel.model.constraints.Constraint;
-import choco.kernel.model.constraints.pack.PackModel;
-import choco.kernel.model.variables.integer.*;
-import choco.cp.solver.*;
-import choco.kernel.solver.*;
-import choco.kernel.solver.variables.integer.IntDomainVar; 
 
 
 //import trace.*;
 
 import java.util.*;
-import java.io.*;
 
 public class myHPCScheduling extends PatternExample {
 
@@ -181,22 +158,19 @@ public class myHPCScheduling extends PatternExample {
 		number_of_nodes = number_of_containers;
 		LOGGER.info("number_of_nodes: "+number_of_nodes);
 		
-		
-
-		
-		
 		itemSets = Choco.makeSetVarArray("itemSets", number_of_nodes, 0, number_of_containers, Options.V_ENUM, Options.V_NO_DECISION);
 		model.addVariables(itemSets);
 		
-		loads = Choco.makeIntVarArray("loads", number_of_nodes, 0, 2, Options.V_NO_DECISION);
+		loads = Choco.makeIntVarArray("loads", number_of_nodes, 0, 2, Options.V_NO_DECISION, Options.V_BOUND);
 		model.addVariables(loads);
 
-		bins = Choco.makeIntVarArray("bins", number_of_containers, 0, number_of_nodes);
+		bins = Choco.makeIntVarArray("bins", number_of_containers, 0, number_of_nodes - 1);
 		model.addVariables(bins);
 
 		sizes = new IntegerConstantVariable[number_of_containers];
 		for (i=0;i<number_of_containers;i++) sizes[i] = Choco.constant(1);
-		
+
+        makeFastPack();
 		PackModel m1 = new PackModel(bins, sizes, loads, itemSets);
 		packC = Choco.pack(m1, Options.C_PACK_AR);
 		model.addConstraint(packC);
@@ -227,9 +201,11 @@ public class myHPCScheduling extends PatternExample {
 		weighted_sum = Choco.makeIntVar("ws", -1*p*(int)Math.ceil(0.5*number_of_containers), d*(int)Math.ceil(0.5*number_of_devils), Options.V_NO_DECISION);
 		model.addVariable(weighted_sum);
 		model.addConstraint(Choco.eq(weighted_sum,Choco.sum(   Choco.mult(total_devil_pairs, d),   Choco.neg(Choco.mult(total_idle_nodes, p))   )));
-
-
 	}
+
+    private void makeFastPack() {
+        model.addConstraint(new ComponentConstraint(FastBinPackingManager.class, new int []{loads.length, bins.length},ArrayUtils.append(loads, sizes, bins)));
+    }
 
 	@Override
 	public void buildSolver() {
@@ -309,6 +285,7 @@ public class myHPCScheduling extends PatternExample {
 }
 
 	public static void main(String[] args) {
+        ChocoLogging.setVerbosity(Verbosity.SEARCH);
 		new myHPCScheduling().execute();
 	}
 }
