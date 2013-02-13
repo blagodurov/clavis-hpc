@@ -142,7 +142,7 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 
 	IntDomainVar[] reordered_containers;
 	int branching_level = 0;
-	int[] last_branch_on_level;
+	int smallest_level_with_finished_branching = -1;
 	int tree_nodes_evaluated = 0;
 	int tree_nodes_pruned = 0;
 
@@ -164,6 +164,9 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 	int best_devil_pairs = -1;
 	int best_powered_up_nodes = -1;
 	int best_colloc_comm_pairs = -1;
+	
+	
+	
 
 
 	private static final int ABSTRACTVAR_EXTENSION =
@@ -396,15 +399,6 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 				}
 			}
 		}
-		
-		
-		last_branch_on_level = new int[number_of_containers];
-		for (i = 0; i < number_of_containers; i++) {
-			last_branch_on_level[i] = 0;
-		}
-
-		
-		
 		
 		
 		
@@ -1694,17 +1688,8 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 	
 	public void finalOutput() {
 		float tree_levels_explored = (float)(1.0);
-		int earliest_branched_level = 2*number_of_containers;
-		for (int i = 0; i < last_branch_on_level.length; i++) {
-			if (last_branch_on_level[i] > 1)
-			{
-				earliest_branched_level = i;
-				break;
-			}
-			//temp += " " + last_branch_on_level[i];
-		}
-		tree_levels_explored -= (float)((float)earliest_branched_level/(float)number_of_containers);
-		System.out.println("tree levels explored: " + tree_levels_explored + " tree_nodes_evaluated: " + tree_nodes_evaluated + " tree_nodes_pruned: " + tree_nodes_pruned);
+		tree_levels_explored -= (float)((float)smallest_level_with_finished_branching/(float)number_of_containers);
+		System.out.println("tree levels explored: " + tree_levels_explored + " tree_nodes_evaluated: " + tree_nodes_evaluated + " tree_nodes_pruned: " + tree_nodes_pruned + " smallest_level_with_finished_branching: " + smallest_level_with_finished_branching);
 
 		myHPCScheduling.logString(best_devil_pairs + " " + best_powered_up_nodes + " " + best_colloc_comm_pairs + " " + bestF + " " + tree_nodes_evaluated + " " + tree_nodes_pruned + " " + tree_levels_explored);
 		
@@ -1754,11 +1739,19 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 				outcome = next_value_to_take_index[container_index] >= fund_distinct_values[container_index].length;
 			}
 			
-			if (branching_level == 0 && outcome == true)
+			
+			if (outcome)
 			{
-				finalOutput();
-			}
+				if (branching_level < smallest_level_with_finished_branching  || smallest_level_with_finished_branching < 0)
+				{
+					smallest_level_with_finished_branching = branching_level;
+				}
 
+				if (branching_level == 0)
+				{
+					finalOutput();
+				}
+			}
 		}
 		
 		//if (outcome) System.out.println("branching finished (" + ctx.getBranchingIntVar() + ")");
@@ -1783,11 +1776,7 @@ public class myImpactBasedBranching extends AbstractLargeIntBranchingStrategy {
 		try {
 			if (isVarStartsWith(var, "v"))
 			{
-				last_branch_on_level[branching_level++]++;
-				for (i = branching_level; i < last_branch_on_level.length; i++) {
-					last_branch_on_level[i] = 0;
-				}
-				
+				branching_level++;
 				tree_nodes_evaluated++;
 
 				long cur_epoch_in_ms = System.currentTimeMillis();

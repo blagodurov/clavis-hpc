@@ -1,5 +1,27 @@
 #!/bin/bash
-# please provide the correct path to your tools.jar below
+# Please provide the correct path to your tools.jar below
+
+# The input files are stored in the "inputs" directory. Please setup the correct path to their location in myHPCBranching/myHPCScheduling:
+# 	String classes_filename = "/cs/systems/home/sba70/octopus_garden/clavis-src/classes-for-choco-" + options[13] + ".csv";
+# 	String comm_filename = "/cs/systems/home/sba70/octopus_garden/clavis-src/comm-matrix-for-choco-" + options[13] + ".csv";
+# 	String schedule_filename = "/cs/systems/home/sba70/octopus_garden/clavis-src/schedule-" + options[13] + ".csv";
+# Please note that the "schedule_filename" is currently unused by the solver.
+
+# The options to myHPCBranching/myHPCScheduling below (please refer to the paper for details):
+# TIME_LIMIT_IN_MS: 60000
+# SET_LOGGING: 0
+# COMPUTE_RANDOM: 0
+# d: 1
+# p: 1
+# c: 1
+# USE_FUND_DISTINCT: 1
+# USE_FUND_PRIO: 1
+# USE_CONTAINER_REORDERING: 1
+# USE_NAIVE_F: 0
+# USE_POTENTIAL_F: 1
+# DO_FATHOMING: 1
+# PRUNE_TOP_PERC: 0
+# RANKS_PER_JOB: 128
 
 BASEDIR=$(dirname $0)
 cd $BASEDIR
